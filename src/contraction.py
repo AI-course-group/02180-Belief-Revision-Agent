@@ -1,15 +1,10 @@
 from __future__ import annotations
-from logic_ast import AST, Var, Neg, Conj, Disj, Impl, Bicond, Connectives
+from logic_ast import AST, Var, Impl, Connectives
 from resolution import resolution
 
-# --- Check if a set of formulas entails a statement ---
 def entails(formulas: list[AST], statement: AST) -> bool:
-    if not formulas:
-        return False
     return resolution(formulas, statement)
 
-# --- Compute remainder sets ---
-# KB ⊥ φ = all maximal subsets of KB that do NOT entail φ
 def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
     """
     A remainder set is a maximal subset of the belief base that
@@ -22,14 +17,14 @@ def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
     # Try every subset of the belief base
     n = len(belief_base)
     for i in range(2**n):
-        subset = [belief_base[j] for j in range(n) if (i >> j) & 1]
+        subset = [belief_base[j] for j in range(n) if ((i >> j) & 1) == 1]
 
         # Skip if this subset entails φ
         if entails(subset, formula):
             continue
 
         # Check maximality — can we add any excluded belief without entailing φ?
-        excluded = [belief_base[j] for j in range(n) if not (i >> j) & 1]
+        excluded = [belief_base[j] for j in range(n) if ((i >> j) & 1) == 0]
         is_maximal = all(
             entails(subset + [b], formula)
             for b in excluded
@@ -40,8 +35,7 @@ def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
 
     return remainders
 
-# --- Selection function based on priority ---
-# Picks the remainder sets with the highest total priority
+
 def select(
     remainders: list[list[AST]],
     belief_base: list[tuple[AST, int]]
@@ -63,7 +57,7 @@ def select(
     max_score = max(score(r) for r in remainders)
     return [r for r in remainders if score(r) == max_score]
 
-# --- Partial meet contraction ---
+
 def contract(
     belief_base: list[tuple[AST, int]],
     formula: AST
@@ -72,13 +66,9 @@ def contract(
     Partial meet contraction: KB ÷ φ
     Returns the new belief base after contracting by formula.
 
-    AGM postulates satisfied:
-    - Inclusion:    result ⊆ KB
-    - Vacuity:      if KB doesn't entail φ, result = KB
-    - Success:      result does not entail φ (unless φ is a tautology)
-    - Extensionality: logically equivalent φ give same result
+    Intended to satisfy key contraction properties such as Inclusion and Vacuity.
     """
-    formulas = [f for f, p in belief_base]
+    formulas = [f for f, _ in belief_base]
 
     # Vacuity postulate — if KB doesn't entail φ, nothing to do
     if not entails(formulas, formula):
@@ -107,7 +97,6 @@ def contract(
     return [(f, priority_map[f]) for f in intersection]
 
 
-# --- Test ---
 if __name__ == "__main__":
     kb = [
         (Var("A"),              3),
