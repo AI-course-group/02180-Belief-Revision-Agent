@@ -1,5 +1,5 @@
 from __future__ import annotations
-from logic_ast import AST, Var, Not, Conjunction, Disjunction, Implies, Biconditional
+from logic_ast import AST, Var, Neg, Conj, Disj, Impl, Bicond
 
 # --- Fully recursive CNF conversion ---
 def formula_to_clauses(ast: AST) -> set[frozenset]:
@@ -11,15 +11,15 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
         # Base cases — already a literal
         case Var():
             return {frozenset([ast])}
-        case Not(Var()):
+        case Neg(Var()):
             return {frozenset([ast])}
 
-        # Conjunction — each side becomes its own set of clauses
-        case Conjunction(left, right):
+        # Conj — each side becomes its own set of clauses
+        case Conj(left, right):
             return formula_to_clauses(left) | formula_to_clauses(right)
 
-        # Disjunction — cross-product merge of both sides
-        case Disjunction(left, right):
+        # Disj — cross-product merge of both sides
+        case Disj(left, right):
             left_clauses = formula_to_clauses(left)
             right_clauses = formula_to_clauses(right)
             return {
@@ -29,37 +29,37 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
             }
 
         # Eliminate Implies recursively
-        case Implies(left, right):
-            return formula_to_clauses(Disjunction(Not(left), right))
+        case Impl(left, right):
+            return formula_to_clauses(Disj(Neg(left), right))
 
-        # Eliminate Biconditional recursively
-        case Biconditional(left, right):
-            return formula_to_clauses(Conjunction(
-                Disjunction(Not(left), right),
-                Disjunction(left, Not(right))
+        # Eliminate Biconditionals recursively
+        case Bicond(left, right):
+            return formula_to_clauses(Conj(
+                Disj(Neg(left), right),
+                Disj(left, Neg(right))
             ))
 
         # Push negations inward (NNF)
-        case Not(Not(expr)):
+        case Neg(Neg(expr)):
             return formula_to_clauses(expr)
 
-        case Not(Conjunction(left, right)):
+        case Neg(Conj(left, right)):
             # De Morgan: ¬(A ∧ B) → (¬A ∨ ¬B)
-            return formula_to_clauses(Disjunction(Not(left), Not(right)))
+            return formula_to_clauses(Disj(Neg(left), Neg(right)))
 
-        case Not(Disjunction(left, right)):
+        case Neg(Disj(left, right)):
             # De Morgan: ¬(A ∨ B) → (¬A ∧ ¬B)
-            return formula_to_clauses(Conjunction(Not(left), Not(right)))
+            return formula_to_clauses(Conj(Neg(left), Neg(right)))
 
-        case Not(Implies(left, right)):
+        case Neg(Impl(left, right)):
             # ¬(A → B) → (A ∧ ¬B)
-            return formula_to_clauses(Conjunction(left, Not(right)))
+            return formula_to_clauses(Conj(left, Neg(right)))
 
-        case Not(Biconditional(left, right)):
+        case Neg(Bicond(left, right)):
             # ¬(A ↔ B) → (A ∧ ¬B) ∨ (¬A ∧ B)
-            return formula_to_clauses(Disjunction(
-                Conjunction(left, Not(right)),
-                Conjunction(Not(left), right)
+            return formula_to_clauses(Disj(
+                Conj(left, Neg(right)),
+                Conj(Neg(left), right)
             ))
 
 # --- Main entry point called by resolution.py ---
@@ -75,7 +75,7 @@ def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
         clauses |= formula_to_clauses(formula)
 
     # Negate the statement — proof by refutation
-    clauses |= formula_to_clauses(Not(statement))
+    clauses |= formula_to_clauses(Neg(statement))
 
     return clauses
 
@@ -84,7 +84,7 @@ def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
 if __name__ == "__main__":
     from logic_ast import Connectives
 
-    kb = [Implies(Var("A"), Var("B")), Var("A")]
+    kb = [Impl(Var("A"), Var("B")), Var("A")]
     statement = Var("B")
 
     clauses = cnf(kb, statement)
