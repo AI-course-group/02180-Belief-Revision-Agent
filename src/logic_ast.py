@@ -11,45 +11,45 @@ class Var:
     name: str
 
 @dataclass(frozen=True)
-class Not:
+class Neg:
     expr: "AST"
 
 @dataclass(frozen=True)
-class Conjunction:
+class Conj:
     left: "AST"
     right: "AST"
 
 @dataclass(frozen=True)
-class Disjunction:
+class Disj:
     left: "AST"
     right: "AST"
 
 @dataclass(frozen=True)
-class Implies:
+class Impl:
     left: "AST"
     right: "AST"
 
 @dataclass(frozen=True)
-class Biconditional:
+class Bicond:
     left: "AST"
     right: "AST"
 
-AST = Union[Var, Not, Conjunction, Disjunction, Implies, Biconditional]
+AST = Union[Var, Neg, Conj, Disj, Impl, Bicond]
 
 def Connectives(ast: AST) -> str:
     match ast:
         case Var(name):
             return name
-        case Not(expr):
+        case Neg(expr):
             return f"!({Connectives(expr)})"
-        case Conjunction(left, right):
+        case Conj(left, right):
             return f"({Connectives(left)} & {Connectives(right)})"
-        case Disjunction(left, right):
+        case Disj(left, right):
             return f"({Connectives(left)} || {Connectives(right)})"
-        case Implies(left, right):
+        case Impl(left, right):
             return f"({Connectives(left)} -> {Connectives(right)})"
-        case Biconditional(left, right):
+        case Bicond(left, right):
             return f"({Connectives(left)} <-> {Connectives(right)})"
 
 
-print(Connectives(Implies(Var("A"), Disjunction(Var("B"), Var("C")))))
+print(Connectives(Impl(Var("A"), Disj(Var("B"), Var("C")))))

@@ -1,4 +1,5 @@
 
+
 # tokens definition for the lexer
 tokens = (
     'VAR',
