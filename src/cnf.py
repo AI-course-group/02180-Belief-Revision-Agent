@@ -14,11 +14,11 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
         case Neg(Var()):
             return {frozenset([ast])}
 
-        # Conj — each side becomes its own set of clauses
+        # Conjunction — each side becomes its own set of clauses
         case Conj(left, right):
             return formula_to_clauses(left) | formula_to_clauses(right)
 
-        # Disj — cross-product merge of both sides
+        # Disjunction — cross-product merge of both sides
         case Disj(left, right):
             left_clauses = formula_to_clauses(left)
             right_clauses = formula_to_clauses(right)
@@ -28,11 +28,11 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
                 for r in right_clauses
             }
 
-        # Eliminate Implies recursively
+        # Eliminate Impl recursively
         case Impl(left, right):
             return formula_to_clauses(Disj(Neg(left), right))
 
-        # Eliminate Biconditionals recursively
+        # Eliminate Bicond recursively
         case Bicond(left, right):
             return formula_to_clauses(Conj(
                 Disj(Neg(left), right),
