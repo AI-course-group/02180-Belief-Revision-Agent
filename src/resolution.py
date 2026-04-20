@@ -1,8 +1,7 @@
 import cnf as CNF
 
-# Change import
-from formula import negate
 
+from logic_ast import Neg
 
 def resolve(ci, cj):
     """
@@ -13,7 +12,7 @@ def resolve(ci, cj):
     
     for li in ci:
         for lj in cj:
-            if li == negate(lj):
+            if li == Neg(lj):
                 resolvent = (ci - {li}).union(cj - {lj})
                 resolvents.add(frozenset(resolvent))
                 
