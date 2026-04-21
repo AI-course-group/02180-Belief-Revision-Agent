@@ -23,7 +23,7 @@ def parse_expr(tokens: list[str], i: int) -> tuple[AST, int]:
 
     token = tokens[i]
 
-    if token not in {"(", ")", "!", "&", "||", "->", "<->"}:
+    if token not in {"(", ")", "!", "&", "|", "->", "<->"}:
         return Var(token), i + 1
 
     # Negation has the highest precedence, so we check for it first
@@ -54,7 +54,7 @@ def parse_expr(tokens: list[str], i: int) -> tuple[AST, int]:
     # Now we have the left and right expressions, and the operator, so we can construct the appropriate AST node
         if op == "&":
             node = Conj(left, right)
-        elif op == "||":
+        elif op == "|":
             node = Disj(left, right)
         elif op == "->":
             node = Impl(left, right)
@@ -69,4 +69,4 @@ def parse_expr(tokens: list[str], i: int) -> tuple[AST, int]:
 
 #ast = parse(["(", "A", "->", "(", "B", "||", "C", ")", ")"])
 #print(pretty_print_statement(ast))
-print(parse(["(", "A", "->", "(", "B", "||", "C", ")", ")"]))
+print(parse(["(", "A", "->", "(", "B", "|", "C", ")", ")"]))

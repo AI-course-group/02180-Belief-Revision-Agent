@@ -84,6 +84,6 @@ from enum import Enum
 class Connectives(Enum):
     NEG = "!"
     CONJ = "&"
-    DISJ = "||"
+    DISJ = "|"
     IMPL = "->"
     BICOND = "<->"

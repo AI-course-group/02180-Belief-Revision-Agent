@@ -2,7 +2,7 @@ from Lex import tokens
 from parser import parse
 # from logic_ast import Connectives
 
-text = "A -> (B || C)"
+text = "A -> (B | C)"
 tokens = tokens(text)
 
 print("TOKENS:", tokens)
