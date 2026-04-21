@@ -82,7 +82,7 @@ def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
 
 # --- Test ---
 if __name__ == "__main__":
-    from logic_ast import Connectives
+    from logic_ast import pretty_print_statement
 
     kb = [Impl(Var("A"), Var("B")), Var("A")]
     statement = Var("B")
@@ -90,4 +90,4 @@ if __name__ == "__main__":
     clauses = cnf(kb, statement)
     print("Clauses for resolution (KB ∪ {¬B}):")
     for clause in clauses:
-        print(f"  {{{', '.join(Connectives(l) for l in clause)}}}")
+        print(f"  {{{', '.join(pretty_print_statement(l) for l in clause)}}}")
