@@ -1,6 +1,7 @@
 from __future__ import annotations
-from logic_ast import AST, Var, Neg, Conj, Disj, Impl, Bicond, Connectives
+from logic_ast import AST, Var, Neg, Conj, Disj, Impl, Bicond
 from cnf import formula_to_clauses
+from logic_ast import pretty_print_statement
 
 class BeliefBase:
     def __init__(self):
@@ -21,10 +22,11 @@ class BeliefBase:
             print("  (empty)")
         else:
             for formula, priority in sorted(self.beliefbase, key=lambda x: -x[1]):
-                print(f"  [{priority}] {Connectives(formula)}")
+                print("formula:", formula)
+                print(f"  [{priority}] {pretty_print_statement(formula)}")
         print("\nCNF Clauses:")
         for clause in self.clauses:
-            literals = " v ".join(Connectives(l) for l in clause)
+            literals = " v ".join(pretty_print_statement(l) for l in clause)
             print(f"  {{{literals}}}")
         print("=" * 30)
 
