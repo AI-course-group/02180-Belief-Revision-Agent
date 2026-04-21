@@ -1,5 +1,5 @@
 from __future__ import annotations
-from logic_ast import AST, Var, Impl, Connectives
+from logic_ast import AST, Var, Impl, pretty_print_statement
 from resolution import resolution
 
 def entails(formulas: list[AST], statement: AST) -> bool:
@@ -106,10 +106,10 @@ if __name__ == "__main__":
 
     print("Before contraction:")
     for f, p in kb:
-        print(f"  [{p}] {Connectives(f)}")
+        print(f"  [{p}] {pretty_print_statement(f)}")
 
     contracted = contract(kb, Var("B"))
 
     print("\nAfter contracting B:")
     for f, p in contracted:
-        print(f"  [{p}] {Connectives(f)}")
+        print(f"  [{p}] {pretty_print_statement(f)}")

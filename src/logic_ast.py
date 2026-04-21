@@ -77,3 +77,13 @@ def pretty_print_statement(ast: AST) -> str:
 print(pretty_print_statement(
     Paren(Impl(Var("A"), Disj(Var("B"), Var("C")))))
 )
+
+
+from enum import Enum
+
+class Connectives(Enum):
+    NEG = "!"
+    CONJ = "&"
+    DISJ = "||"
+    IMPL = "->"
+    BICOND = "<->"
