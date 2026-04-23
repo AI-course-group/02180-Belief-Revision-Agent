@@ -1,7 +1,7 @@
 from __future__ import annotations
 from logic_ast import AST, Var, Impl, pretty_print_statement
 from resolution import resolution
-
+from revision import revise
 
 def entails(formulas: list[AST], statement: AST) -> bool:
     return resolution(formulas, statement)
@@ -26,23 +26,10 @@ def expand(
     return belief_base + [(formula, priority)]
 
 
-def revise(
-    belief_base: list[tuple[AST, int]],
-    formula: AST,
-    priority: int = 0,
-) -> list[tuple[AST, int]]:
-    # revision = contract the opposite first, then expand
-    # this way the new formula doesn't contradict what's already in the base
-    # KB * phi = (KB / neg phi) + phi
-    from contraction import contract
-    from logic_ast import Neg
-
-    contracted = contract(belief_base, Neg(formula))
-    return expand(contracted, formula, priority)
 
 
 
-if __name__ == "__main__":
+
     from logic_ast import Neg
 
     def print_kb(kb):
