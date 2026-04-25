@@ -1,5 +1,5 @@
 from __future__ import annotations
-from logic_ast import AST, Var, Neg, Conj, Disj, Impl, Bicond
+from logic_ast import AST, Paren, Var, Neg, Conj, Disj, Impl, Bicond, pretty_print_statement
 
 # --- Fully recursive CNF conversion ---
 def formula_to_clauses(ast: AST) -> set[frozenset]:
@@ -54,6 +54,12 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
         case Neg(Impl(left, right)):
             # ¬(A → B) → (A ∧ ¬B)
             return formula_to_clauses(Conj(left, Neg(right)))
+        
+        case Paren(expr):
+            return formula_to_clauses(expr)  # unwrap parentheses
+        
+        case Neg(Paren(expr)):
+            return formula_to_clauses(Neg(expr))  # unwrap then negate
 
         case Neg(Bicond(left, right)):
             # ¬(A ↔ B) → (A ∧ ¬B) ∨ (¬A ∧ B)
@@ -61,6 +67,8 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
                 Conj(left, Neg(right)),
                 Conj(Neg(left), right)
             ))
+        case _:
+            raise ValueError(f"Unknown AST node: {ast}")
 
 # --- Main entry point called by resolution.py ---
 def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
@@ -82,7 +90,7 @@ def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
 
 # --- Test ---
 if __name__ == "__main__":
-    from logic_ast import Connectives
+    from logic_ast import pretty_print_statement
 
     kb = [Impl(Var("A"), Var("B")), Var("A")]
     statement = Var("B")
@@ -90,4 +98,4 @@ if __name__ == "__main__":
     clauses = cnf(kb, statement)
     print("Clauses for resolution (KB ∪ {¬B}):")
     for clause in clauses:
-        print(f"  {{{', '.join(Connectives(l) for l in clause)}}}")
+        print(f"  {{{', '.join(pretty_print_statement(l) for l in clause)}}}")
