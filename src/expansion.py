@@ -26,22 +26,6 @@ def expand(
     return belief_base + [(formula, priority)]
 
 
-def revise(
-    belief_base: list[tuple[AST, int]],
-    formula: AST,
-    priority: int = 0,
-) -> list[tuple[AST, int]]:
-    # revision = contract the opposite first, then expand
-    # this way the new formula doesn't contradict what's already in the base
-    # KB * phi = (KB / neg phi) + phi
-    from contraction import contract
-    from logic_ast import Neg
-
-    contracted = contract(belief_base, Neg(formula))
-    return expand(contracted, formula, priority)
-
-
-
 if __name__ == "__main__":
     from logic_ast import Neg
 
@@ -100,7 +84,7 @@ if __name__ == "__main__":
 
         return kb_new
 
-    # ── STEP 0 ──────────────────────────────────────────
+    # Step 0
     kb = [
         (Var("A"),                 3),
         (Impl(Var("A"), Var("B")), 2),
@@ -110,21 +94,21 @@ if __name__ == "__main__":
     print("=" * 40)
     print_kb(kb)
 
-    # ── STEP 1 ──────────────────────────────────────────
+    # Step 1
     print("\n" + "=" * 40)
     print("STEP 1 - expand(KB, C, priority=1)")
     print("=" * 40)
     kb = expand_and_report(kb, Var("C"), priority=1)
     print_kb(kb)
 
-    # ── STEP 2 ──────────────────────────────────────────
+    # Step 2
     print("\n" + "=" * 40)
     print("STEP 2 - expand(KB, B, priority=5)")
     print("=" * 40)
     kb = expand_and_report(kb, Var("B"), priority=5)
     print_kb(kb)
 
-    # ── STEP 3 ──────────────────────────────────────────
+    # Step 3
     print("\n" + "=" * 40)
     print("STEP 3 - revise(KB, !A, priority=4)")
     print("=" * 40)

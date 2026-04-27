@@ -13,6 +13,16 @@ def formulas(kb):
 def sets_equal(kb1, kb2):
     return set(formulas(kb1)) == set(formulas(kb2))
 
+def semantically_equal(kb1, kb2):
+    fs1 = formulas(kb1)
+    fs2 = formulas(kb2)
+
+    return (
+        all(entails(fs1, f2) for f2 in fs2)
+        and
+        all(entails(fs2, f1) for f1 in fs1)
+    )
+
 def is_consistent(kb):
     fs = formulas(kb)
     if not fs:
@@ -68,7 +78,7 @@ def test_contraction(kb, formula):
     contracted_equiv = contract(kb, Disj(formula, formula))
     check(
         "Extensionality  (equiv φ gives same result)",
-        sets_equal(contracted, contracted_equiv)
+        semantically_equal(contracted, contracted_equiv)
     )
 
     # Consistency: consistent KB stays consistent after contraction

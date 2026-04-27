@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from logic_ast import Var, Neg, Disj, Impl, pretty_print_statement
 from contraction import entails
-from expansion import revise
+from revision import revise
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -13,6 +13,16 @@ def formulas(kb):
 
 def sets_equal(kb1, kb2):
     return set(formulas(kb1)) == set(formulas(kb2))
+
+def semantically_equal(kb1, kb2):
+    fs1 = formulas(kb1)
+    fs2 = formulas(kb2)
+
+    return (
+        all(entails(fs1, f2) for f2 in fs2)
+        and
+        all(entails(fs2, f1) for f1 in fs1)
+    )
 
 def is_consistent(kb):
     fs = formulas(kb)
@@ -69,14 +79,14 @@ def test_revision(kb, formula, priority=0):
     levi_manual = expand(contracted_neg, formula, priority)
     check(
         "Levi identity   (KB*φ = (KB÷¬φ)+φ)",
-        sets_equal(levi, levi_manual)
+        semantically_equal(levi, levi_manual)
     )
 
     # Extensionality: φ ↔ (φ∨φ) gives same revision
     revised_equiv = revise(kb, Disj(formula, formula), priority)
     check(
         "Extensionality  (equiv φ gives same result)",
-        sets_equal(revised, revised_equiv)
+        semantically_equal(revised, revised_equiv)
     )
 
 

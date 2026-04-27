@@ -5,6 +5,16 @@ from contraction import contract
 from expansion import expand
 
 
+def simplify_negation(formula: AST) -> AST:
+    if isinstance(formula, Neg) and isinstance(formula.expr, Neg):
+        return simplify_negation(formula.expr.expr)
+
+    if isinstance(formula, Neg):
+        return Neg(simplify_negation(formula.expr))
+
+    return formula
+
+
 def revise(
     belief_base: list[tuple[AST, int]],
     formula: AST,
@@ -18,7 +28,9 @@ def revise(
     We first contract away beliefs that force the negation of the new
     information, then expand the belief base with the new formula.
     """
-    contracted = contract(belief_base, Neg(formula))
+    opposite = simplify_negation(Neg(formula))
+    
+    contracted = contract(belief_base, opposite)
     return expand(contracted, formula, priority)
 
 

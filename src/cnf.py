@@ -8,17 +8,16 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
     Each clause is a frozenset of literals (Var or Not(Var)).
     """
     match ast:
-        # Base cases — already a literal
         case Var():
             return {frozenset([ast])}
         case Neg(Var()):
             return {frozenset([ast])}
 
-        # Conjunction — each side becomes its own set of clauses
+        # Conjunction: each side becomes its own set of clauses
         case Conj(left, right):
             return formula_to_clauses(left) | formula_to_clauses(right)
 
-        # Disjunction — cross-product merge of both sides
+        # Disjunction: cross-product merge of both sides
         case Disj(left, right):
             left_clauses = formula_to_clauses(left)
             right_clauses = formula_to_clauses(right)
@@ -44,15 +43,12 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
             return formula_to_clauses(expr)
 
         case Neg(Conj(left, right)):
-            # De Morgan: ¬(A ∧ B) → (¬A ∨ ¬B)
             return formula_to_clauses(Disj(Neg(left), Neg(right)))
 
         case Neg(Disj(left, right)):
-            # De Morgan: ¬(A ∨ B) → (¬A ∧ ¬B)
             return formula_to_clauses(Conj(Neg(left), Neg(right)))
 
         case Neg(Impl(left, right)):
-            # ¬(A → B) → (A ∧ ¬B)
             return formula_to_clauses(Conj(left, Neg(right)))
         
         case Paren(expr):
@@ -62,7 +58,6 @@ def formula_to_clauses(ast: AST) -> set[frozenset]:
             return formula_to_clauses(Neg(expr))  # unwrap then negate
 
         case Neg(Bicond(left, right)):
-            # ¬(A ↔ B) → (A ∧ ¬B) ∨ (¬A ∧ B)
             return formula_to_clauses(Disj(
                 Conj(left, Neg(right)),
                 Conj(Neg(left), right)
@@ -82,7 +77,7 @@ def cnf(belief_base: list[AST], statement: AST) -> set[frozenset]:
     for formula in belief_base:
         clauses |= formula_to_clauses(formula)
 
-    # Negate the statement — proof by refutation
+    # Negate the statement - proof by refutation
     clauses |= formula_to_clauses(Neg(statement))
 
     return clauses

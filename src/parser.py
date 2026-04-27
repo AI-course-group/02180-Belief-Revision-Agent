@@ -1,72 +1,92 @@
 from logic_ast import AST, Bicond, Conj, Disj, Impl, Neg, Var, Paren
-from logic_ast import pretty_print_statement 
 
-# Error handling for parsing 
+
 class ParseError(Exception):
     def __init__(self, message: str):
         super().__init__(message)
 
 
-# Parsing logic statements into ASTs
 def parse(tokens: list[str]) -> AST:
-    ast, next_index = parse_expr(tokens, 0)
+    ast, next_index = parse_bicond(tokens, 0)
 
     if next_index != len(tokens):
         raise ParseError(f"Unexpected tokens after valid expression at index {next_index}")
 
     return ast
 
-# Makes the expression into an AST, and returns the AST along with the index of the next token to parse
-def parse_expr(tokens: list[str], i: int) -> tuple[AST, int]:
+
+# Lowest precedence: biconditional
+def parse_bicond(tokens: list[str], i: int) -> tuple[AST, int]:
+    left, i = parse_impl(tokens, i)
+
+    while i < len(tokens) and tokens[i] == "<->":
+        right, i = parse_impl(tokens, i + 1)
+        left = Bicond(left, right)
+
+    return left, i
+
+
+# Implication
+def parse_impl(tokens: list[str], i: int) -> tuple[AST, int]:
+    left, i = parse_disj(tokens, i)
+
+    while i < len(tokens) and tokens[i] == "->":
+        right, i = parse_disj(tokens, i + 1)
+        left = Impl(left, right)
+
+    return left, i
+
+
+# Disjunction
+def parse_disj(tokens: list[str], i: int) -> tuple[AST, int]:
+    left, i = parse_conj(tokens, i)
+
+    while i < len(tokens) and tokens[i] == "|":
+        right, i = parse_conj(tokens, i + 1)
+        left = Disj(left, right)
+
+    return left, i
+
+
+# Conjunction
+def parse_conj(tokens: list[str], i: int) -> tuple[AST, int]:
+    left, i = parse_neg(tokens, i)
+
+    while i < len(tokens) and tokens[i] == "&":
+        right, i = parse_neg(tokens, i + 1)
+        left = Conj(left, right)
+
+    return left, i
+
+
+# Negation
+def parse_neg(tokens: list[str], i: int) -> tuple[AST, int]:
+    if i >= len(tokens):
+        raise ParseError("Unexpected end of input")
+
+    if tokens[i] == "!":
+        expr, next_i = parse_neg(tokens, i + 1)
+        return Neg(expr), next_i
+
+    return parse_atom(tokens, i)
+
+
+# Variables and parenthesized expressions
+def parse_atom(tokens: list[str], i: int) -> tuple[AST, int]:
     if i >= len(tokens):
         raise ParseError("Unexpected end of input")
 
     token = tokens[i]
 
+    if token == "(":
+        expr, next_i = parse_bicond(tokens, i + 1)
+
+        if next_i >= len(tokens) or tokens[next_i] != ")":
+            raise ParseError("Expected closing parenthesis")
+
+        return Paren(expr), next_i + 1
+
     if token not in {"(", ")", "!", "&", "|", "->", "<->"}:
         return Var(token), i + 1
 
-    # Negation has the highest precedence, so we check for it first
-    if token == "!":
-        expr, next_i = parse_expr(tokens, i + 1)
-        return Neg(expr), next_i
-
-    # Then we check for parentheses, which can contain any expression, including binary operations
-    if token == "(":
-        left, i = parse_expr(tokens, i + 1)
-
-        if i >= len(tokens):
-            raise ParseError("Expected operator or closing parenthesis")
-
-        
-        if tokens[i] == ")":
-            return Paren(left), i + 1
-
-        
-        op = tokens[i]
-        i += 1
-
-        right, i = parse_expr(tokens, i)
-
-        if i >= len(tokens) or tokens[i] != ")":
-            raise ParseError("Expected closing parenthesis")
-
-    # Now we have the left and right expressions, and the operator, so we can construct the appropriate AST node
-        if op == "&":
-            node = Conj(left, right)
-        elif op == "|":
-            node = Disj(left, right)
-        elif op == "->":
-            node = Impl(left, right)
-        elif op == "<->":
-            node = Bicond(left, right)
-        else:
-            raise ParseError(f"Expected binary operator, got {op}")
-
-        return Paren(node), i + 1
-
     raise ParseError(f"Unexpected token at index {i}: {token}")
-
-#ast = parse(["(", "A", "->", "(", "B", "||", "C", ")", ")"])
-#print(pretty_print_statement(ast))
-print(parse(["(", "A", "->", "(", "B", "|", "C", ")", ")"]))

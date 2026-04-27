@@ -4,18 +4,14 @@ import cnf as CNF
 from logic_ast import Neg
 
 def resolve(ci, cj):
-    """
-    Takes two clauses ci and cj (sets of literals) and returns the set of resolvents obtained 
-    by resolving ci and cj.
-    """
     resolvents = set()
-    
+
     for li in ci:
         for lj in cj:
-            if li == Neg(lj):
+            if li == Neg(lj) or lj == Neg(li):
                 resolvent = (ci - {li}).union(cj - {lj})
                 resolvents.add(frozenset(resolvent))
-                
+
     return resolvents
 
 

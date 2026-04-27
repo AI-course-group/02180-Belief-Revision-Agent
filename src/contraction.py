@@ -2,7 +2,11 @@ from __future__ import annotations
 from logic_ast import AST, Var, Impl, pretty_print_statement
 from resolution import resolution
 
+
 def entails(formulas: list[AST], statement: AST) -> bool:
+    if any(f == statement for f in formulas):
+        return True
+
     return resolution(formulas, statement)
 
 def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
@@ -10,7 +14,7 @@ def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
     A remainder set is a maximal subset of the belief base that
     does not entail the formula being contracted.
     Maximal means: you cannot add any more beliefs back in
-    without entailing φ again.
+    without entailing phi again.
     """
     remainders = []
 
@@ -19,11 +23,11 @@ def remainder_sets(belief_base: list[AST], formula: AST) -> list[list[AST]]:
     for i in range(2**n):
         subset = [belief_base[j] for j in range(n) if ((i >> j) & 1) == 1]
 
-        # Skip if this subset entails φ
+        # Skip if this subset entails phi
         if entails(subset, formula):
             continue
 
-        # Check maximality — can we add any excluded belief without entailing φ?
+        # Check maximality - can we add any excluded belief without entailing phi?
         excluded = [belief_base[j] for j in range(n) if ((i >> j) & 1) == 0]
         is_maximal = all(
             entails(subset + [b], formula)
@@ -70,14 +74,12 @@ def contract(
     """
     formulas = [f for f, _ in belief_base]
 
-    # Vacuity postulate — if KB doesn't entail φ, nothing to do
     if not entails(formulas, formula):
         return belief_base
 
     # Compute remainder sets
     remainders = remainder_sets(formulas, formula)
 
-    # If no remainders found, contract to empty
     if not remainders:
         return []
 
@@ -88,7 +90,11 @@ def contract(
     if not selected:
         return []
 
-    intersection = set(selected[0])
+    intersection = [
+        f for f in formulas
+        if all(f in r for r in selected)
+    ]
+    
     for r in selected[1:]:
         intersection &= set(r)
 

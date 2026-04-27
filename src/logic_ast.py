@@ -64,7 +64,7 @@ def pretty_print_statement(ast: AST) -> str:
         case Conj(left, right):
             return f"{pretty_print_statement(left)} & {pretty_print_statement(right)}"
         case Disj(left, right):
-            return f"{pretty_print_statement(left)} || {pretty_print_statement(right)}"
+            return f"{pretty_print_statement(left)} | {pretty_print_statement(right)}"
         case Impl(left, right):
             return f"{pretty_print_statement(left)} -> {pretty_print_statement(right)}"
         case Bicond(left, right):

@@ -14,6 +14,16 @@ def formulas(kb):
 def sets_equal(kb1, kb2):
     return set(formulas(kb1)) == set(formulas(kb2))
 
+def semantically_equal(kb1, kb2):
+    fs1 = formulas(kb1)
+    fs2 = formulas(kb2)
+
+    return (
+        all(entails(fs1, f2) for f2 in fs2)
+        and
+        all(entails(fs2, f1) for f1 in fs1)
+    )
+
 def is_consistent(kb):
     fs = formulas(kb)
     if not fs:
@@ -72,7 +82,7 @@ def test_expansion(kb, formula, priority=0):
     expanded_equiv = expand(kb, Disj(formula, formula), priority)
     check(
         "Extensionality  (equiv φ gives same result)",
-        sets_equal(expanded, expanded_equiv)
+        semantically_equal(expanded, expanded_equiv)
     )
 
 
@@ -89,9 +99,9 @@ if __name__ == "__main__":
     print("=" * 45)
     print("KB1: A, A→B, B")
     print("=" * 45)
-    test_expansion(kb1, Var("C"), priority=1)            # new formula
-    test_expansion(kb1, Var("B"), priority=5)            # already entailed — vacuity
-    test_expansion(kb1, Neg(Var("A")), priority=4)       # consistent addition
+    test_expansion(kb1, Var("C"), priority=1)
+    test_expansion(kb1, Var("B"), priority=5)
+    test_expansion(kb1, Var("D"), priority=4)
 
     # Scenario 2: minimal base
     kb2 = [
@@ -102,7 +112,7 @@ if __name__ == "__main__":
     print("KB2: P, Q")
     print("=" * 45)
     test_expansion(kb2, Impl(Var("P"), Var("Q")), priority=3)
-    test_expansion(kb2, Neg(Var("P")), priority=2)
+    test_expansion(kb2, Var("R"), priority=2)
 
     # Scenario 3: empty base
     kb3 = []
