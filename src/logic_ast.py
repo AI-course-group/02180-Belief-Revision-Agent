@@ -74,10 +74,6 @@ def pretty_print_statement(ast: AST) -> str:
         case _:
             raise ValueError(f"Unknown AST node: {ast}")
 
-print(pretty_print_statement(
-    Paren(Impl(Var("A"), Disj(Var("B"), Var("C")))))
-)
-
 
 from enum import Enum
 

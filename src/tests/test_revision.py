@@ -6,7 +6,7 @@ from logic_ast import Var, Neg, Disj, Impl, pretty_print_statement
 from contraction import entails
 from revision import revise
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ---------- Helpers ----------
 
 def formulas(kb):
     return [f for f, _ in kb]
@@ -34,34 +34,34 @@ def is_consistent(kb):
     return True
 
 def check(name: str, condition: bool):
-    print(f"  {'✅ PASS' if condition else '❌ FAIL'} — {name}")
+    print(f"  {'PASS' if condition else 'FAIL'} — {name}")
 
-# ── Postulate Tests ───────────────────────────────────────────────────────────
+# ---------- Postulate Tests ----------
 
 def test_revision(kb, formula, priority=0):
     label = pretty_print_statement(formula)
-    print(f"\nRevising with φ = {label}")
+    print(f"\nRevising with phi = {label}")
     print("-" * 45)
 
     revised = revise(kb, formula, priority)
     fs_revised = formulas(revised)
 
-    # Success: φ is entailed after revision
+    # Success: phi is entailed after revision
     check(
-        "Success         (φ entailed after revision)",
+        "Success         (phi entailed after revision)",
         entails(fs_revised, formula)
     )
 
-    # Inclusion: KB * φ ⊆ KB + φ
+    # Inclusion: KB * phi is a subset of KB + phi
     from expansion import expand
     expanded = expand(kb, formula, priority)
     fs_expanded = formulas(expanded)
     check(
-        "Inclusion       (result ⊆ KB + φ)",
+        "Inclusion       (result ⊆ KB + phi)",
         all(f in fs_expanded for f in fs_revised)
     )
 
-    # Consistency: result should be consistent (unless φ itself is contradictory)
+    # Consistency: result should be consistent (unless phi itself is contradictory)
     phi_consistent = not entails([formula], Neg(formula))
     if phi_consistent:
         check(
@@ -69,28 +69,28 @@ def test_revision(kb, formula, priority=0):
             is_consistent(revised)
         )
     else:
-        check("Consistency     (skipped — φ is contradictory)", True)
+        check("Consistency     (skipped — phi is contradictory)", True)
 
-    # Levi identity: KB * φ = (KB ÷ ¬φ) + φ
+    # Levi identity: KB * phi = (KB / !phi) + phi
     from contraction import contract
     levi = revise(kb, formula, priority)
     contracted_neg = contract(kb, Neg(formula))
     from expansion import expand
     levi_manual = expand(contracted_neg, formula, priority)
     check(
-        "Levi identity   (KB*φ = (KB÷¬φ)+φ)",
+        "Levi identity   (KB * phi = (KB/!phi)+ phi)",
         semantically_equal(levi, levi_manual)
     )
 
-    # Extensionality: φ ↔ (φ∨φ) gives same revision
+    # Extensionality: phi <-> (phi or phi) gives same revision
     revised_equiv = revise(kb, Disj(formula, formula), priority)
     check(
-        "Extensionality  (equiv φ gives same result)",
+        "Extensionality  (equiv phi gives same result)",
         semantically_equal(revised, revised_equiv)
     )
 
 
-# ── Test Scenarios ────────────────────────────────────────────────────────────
+# ---------- Test Scenarios ----------
 
 if __name__ == "__main__":
 
