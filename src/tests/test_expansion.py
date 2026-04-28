@@ -6,7 +6,7 @@ from logic_ast import Var, Neg, Disj, Impl, pretty_print_statement
 from contraction import entails
 from expansion import expand
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers 
 
 def formulas(kb):
     return [f for f, _ in kb]
@@ -34,39 +34,39 @@ def is_consistent(kb):
     return True
 
 def check(name: str, condition: bool):
-    print(f"  {'✅ PASS' if condition else '❌ FAIL'} — {name}")
+    print(f"  {'PASS' if condition else ' FAIL'} — {name}")
 
-# ── Postulate Tests ───────────────────────────────────────────────────────────
+# Postulate Tests
 
 def test_expansion(kb, formula, priority=0):
     label = pretty_print_statement(formula)
-    print(f"\nExpanding with φ = {label}")
+    print(f"\nExpanding with Phi = {label}")
     print("-" * 45)
 
     expanded = expand(kb, formula, priority)
     fs_kb = formulas(kb)
     fs_expanded = formulas(expanded)
 
-    # Success: φ is entailed after expansion
+    # Success: Phi is entailed after expansion
     check(
-        "Success         (φ entailed after expansion)",
+        "Success         (Phi entailed after expansion)",
         entails(fs_expanded, formula)
     )
 
-    # Inclusion: KB ⊆ KB + φ
+    # Inclusion: KB Subsetequals KB + Phi
     check(
-        "Inclusion       (KB ⊆ result)",
+        "Inclusion       (KB Subsetequals result)",
         all(f in fs_expanded for f in fs_kb)
     )
 
-    # Vacuity: if φ already entailed, KB unchanged
+    # Vacuity: if Phi already entailed, KB unchanged
     if entails(fs_kb, formula):
         check(
-            "Vacuity         (KB unchanged since φ already entailed)",
+            "Vacuity         (KB unchanged since Phi already entailed)",
             sets_equal(expanded, kb)
         )
     else:
-        check("Vacuity         (skipped — φ not already entailed)", True)
+        check("Vacuity         (skipped — Phi not already entailed)", True)
 
     # Consistency
     phi_consistent = not entails([formula], Neg(formula))
@@ -76,17 +76,17 @@ def test_expansion(kb, formula, priority=0):
             is_consistent(expanded)
         )
     else:
-        check("Consistency     (skipped — KB or φ inconsistent)", True)
+        check("Consistency     (skipped — KB or Phi inconsistent)", True)
 
-    # Extensionality: φ ↔ (φ∨φ) gives same expansion
+    # Extensionality: Phi <-> (Phi ∨ Phi) gives same expansion
     expanded_equiv = expand(kb, Disj(formula, formula), priority)
     check(
-        "Extensionality  (equiv φ gives same result)",
+        "Extensionality  (equiv Phi gives same result)",
         semantically_equal(expanded, expanded_equiv)
     )
 
 
-# ── Test Scenarios ────────────────────────────────────────────────────────────
+# Test Scenarios
 
 if __name__ == "__main__":
 
