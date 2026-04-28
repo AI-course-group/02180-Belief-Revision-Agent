@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from logic_ast import Var, Neg, Disj, Impl, pretty_print_statement
 from contraction import contract, entails
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
+# -------- Helpers ----------
 
 def formulas(kb):
     return [f for f, _ in kb]
@@ -32,52 +32,52 @@ def is_consistent(kb):
             return False
     return True
 
-PASS = "✅ PASS"
-FAIL = "❌ FAIL"
+PASS = " PASS"
+FAIL = " FAIL"
 
 def check(name: str, condition: bool):
-    print(f"  {'✅ PASS' if condition else '❌ FAIL'} — {name}")
+    print(f"  {' PASS' if condition else ' FAIL'} — {name}")
 
-# ── Postulate Tests ───────────────────────────────────────────────────────────
+# ----------  Postulate Tests ----------
 
 def test_contraction(kb, formula):
     label = pretty_print_statement(formula)
-    print(f"\nContracting φ = {label}")
+    print(f"\nContracting phi = {label}")
     print("-" * 45)
 
     contracted = contract(kb, formula)
     fs_kb = formulas(kb)
     fs_contracted = formulas(contracted)
 
-    # Inclusion: KB ÷ φ ⊆ KB
+    # Inclusion: KB / phi is a subset of KB
     check(
-        "Inclusion       (result ⊆ KB)",
+        "Inclusion       (result is a subset of KB)",
         all(f in fs_kb for f in fs_contracted)
     )
 
-    # Vacuity: if KB doesn't entail φ, result = KB
+    # Vacuity: if KB doesn't entail phi, result = KB
     if not entails(fs_kb, formula):
         check(
-            "Vacuity         (KB unchanged since φ not entailed)",
+            "Vacuity         (KB unchanged since phi not entailed)",
             sets_equal(contracted, kb)
         )
     else:
-        check("Vacuity         (skipped — KB entails φ)", True)
+        check("Vacuity         (skipped — KB entails phi)", True)
 
-    # Success: result does not entail φ (unless tautology)
+    # Success: result does not entail phi (unless tautology)
     tautology = entails([], formula)
     if not tautology:
         check(
-            "Success         (result does not entail φ)",
+            "Success         (result does not entail phi)",
             not entails(fs_contracted, formula)
         )
     else:
-        check("Success         (skipped — φ is a tautology)", True)
+        check("Success         (skipped — phi is a tautology)", True)
 
-    # Extensionality: φ ↔ (φ∨φ) gives same result
+    # Extensionality: phi is equivalent to (phi or phi) which gives th same result
     contracted_equiv = contract(kb, Disj(formula, formula))
     check(
-        "Extensionality  (equiv φ gives same result)",
+        "Extensionality  (equiv phi gives same result)",
         semantically_equal(contracted, contracted_equiv)
     )
 
@@ -88,10 +88,10 @@ def test_contraction(kb, formula):
             is_consistent(contracted)
         )
     else:
-        check("Consistency     (skipped — KB inconsistent or φ tautology)", True)
+        check("Consistency     (skipped — KB inconsistent or phi tautology)", True)
 
 
-# ── Test Scenarios ────────────────────────────────────────────────────────────
+# ---------- Test Scenarios ----------
 
 if __name__ == "__main__":
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         (Var("B"),                  1),
     ]
     print("=" * 45)
-    print("KB1: A, A→B, B")
+    print("KB1: A, A -> B, B")
     print("=" * 45)
     test_contraction(kb1, Var("B"))                      # entailed — contracts
     test_contraction(kb1, Var("C"))                      # not entailed — vacuity
